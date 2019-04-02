@@ -29,6 +29,9 @@
 #include <util.h>
 
 #include <benchmark.h>
+#include <omp.h>
+
+#include <vector>
 
 /**
  * @name Program Parameters
@@ -40,8 +43,12 @@ static struct
 	unsigned ntasks;                      /**< Number of tasks.                       */
 	unsigned chunksize;                   /**< Chunk size for the dynamic scheduling. */
 	unsigned load;                        /**< Kernel load.                           */
+	unsigned mogslib;											/**< Using MOGSLib or Native BinLPT.        */
 	void (*kernel)(unsigned *, unsigned); /**< Application kernel.       */
-} args = { NULL, 0, 0, 0, 1, NULL };
+} args = { NULL, 0, 0, 0, 1, 0, NULL };
+
+unsigned loopid;
+std::vector<unsigned> workloads;
 
 /**
  * @brief Prints program usage and exits.
@@ -62,6 +69,7 @@ static void usage(void)
 	printf("  --input <filename>    Input workload file\n");
 	printf("  --load <num>          kernel load\n");
 	printf("  --nthreads <num>      Number of threads\n");
+	printf("  --mogslib <1/0>       Using MOGSLib or not\n");
 
 	exit(EXIT_SUCCESS);
 }
@@ -206,6 +214,8 @@ static void readargs(int argc, const char **argv)
 			kernelname = argv[++i];
 		else if (!strcmp(argv[i], "--input"))
 			args.input = argv[++i];
+		else if (!strcmp(argv[i], "--mogslib"))
+			args.mogslib = atoi(argv[++i]);
 	}
 
 	chkargs(kernelname);
@@ -228,7 +238,7 @@ static unsigned *readfile(const char *input)
 
 	assert(fscanf(fp , "%u", &args.ntasks) == 1);
 
-	tasks = smalloc(args.ntasks*sizeof(unsigned));
+	tasks = new unsigned[args.ntasks]();
 	
 	/* Read file. */
 	for (unsigned i = 0; i < args.ntasks; i++)
@@ -267,9 +277,16 @@ int main(int argc, const char **argv)
 	
 	tasks = readfile(args.input);
 
-	benchmark(tasks, args.ntasks, args.nthreads, args.load);
 
-	free(tasks);
+	workloads.resize(args.ntasks);
+	memcpy(workloads.data(), tasks, args.ntasks*sizeof(unsigned));
+	if(!args.mogslib)
+		loopid = omp_loop_register("mainloop");
+
+	for(int i = 0; i < NTESTS; ++i)
+		benchmark(tasks, args.ntasks, args.nthreads, args.load, args.mogslib);
+
+	delete [] tasks;
 	
 	return (EXIT_SUCCESS);
 }

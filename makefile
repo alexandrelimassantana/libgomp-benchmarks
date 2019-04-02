@@ -18,21 +18,24 @@
 #
 
 # Directories.
+export MOGSLIB=/home/alexandre/Documents/git/mogslib
+export LIBGOMP=/home/alexandre/Documents/git/libgomp
+
 export BINDIR = $(CURDIR)/bin
 export INCDIR = $(CURDIR)/include
 export SRCDIR = $(CURDIR)/src
 
 # Toolchain.
-export CC = gcc
+export CC = g++
 
 # Toolchain configuration.
-export CFLAGS += -I $(INCDIR)
-export CFLAGS += -ansi -std=c99 -pedantic -fopenmp
+export CFLAGS += -I $(INCDIR) -I $(MOGSLIB)/include -I $(LIBGOMP)/src/libgomp/build
+export CFLAGS += --std=c++14 -fopenmp
 export CFLAGS += -Wall -Wextra -Werror
-export CFLAGS += -O3 -D_POSIX_C_SOURCE=200112L
+export CFLAGS += -O3
 
 # Libraries.
-export LIBS = -L $(CURDIR)/contrib/lapesd-libgomp/src/libgomp/build/.libs -lgomp -lm
+export LIBS = -L $(LIBGOMP)/src/libgomp/build/.libs -lgomp -lm
 
 # Executable file.
 export EXEC = benchmark
@@ -40,7 +43,7 @@ export EXEC = benchmark
 # Builds everything.
 all:
 	mkdir -p $(BINDIR)
-	$(CC) $(SRCDIR)/benchmark/*.c $(CFLAGS)  -o $(BINDIR)/$(EXEC).elf $(LIBS)
+	$(CC) $(SRCDIR)/benchmark/*.cpp $(CFLAGS)  -o $(BINDIR)/$(EXEC).elf $(LIBS) -D NTESTS=10
 
 # Cleans compilation files.
 clean:

@@ -35,11 +35,17 @@ if [ -z $LOAD ]; then
 	let LOAD=10000000
 fi
 
-for strategy in static guided dynamic binlpt;
+for strategy in binlpt mogslib;
 do
 	echo "=== $strategy ==="
 
-	export LD_LIBRARY_PATH=contrib/lapesd-libgomp/src/libgomp/build/.libs/
+	if [ $strategy == "mogslib" ]; then 
+		export USING_MOGSLIB=1
+	else
+		export USING_MOGSLIB=0
+	fi
+
+	export LD_LIBRARY_PATH=$LIBGOMP/src/libgomp/build/.libs/
 	export OMP_SCHEDULE="$strategy"
 	export GOMP_CPU_AFFINITY="0-$NTHREADS"
 
@@ -47,5 +53,6 @@ do
 		--input $INPUT       \
 		--nthreads $NTHREADS \
 		--kernel logarithmic \
-		--load $LOAD
+		--load $LOAD 				\
+		--mogslib $USING_MOGSLIB
 done

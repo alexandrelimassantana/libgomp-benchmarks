@@ -29,9 +29,13 @@
 #include <util.h>
 #include <benchmark.h>
 
-/* Definied at LaPeSD LibGOMP. */
-extern void omp_set_workload(unsigned *, unsigned);
+#include <mogslib/mogslib.h>
 
+/* Definied at LaPeSD LibGOMP. */
+// extern unsigned omp_loop_register(const char *);
+// extern void omp_set_workload(unsigned, unsigned *, unsigned, bool);
+extern unsigned loopid;
+extern std::vector<unsigned> workloads;
 /*============================================================================*
  *                                   Kernel                                   *
  *============================================================================*/
@@ -136,21 +140,20 @@ static void benchmark_dump(const double *respvar, int nthreads, const char *pref
  * @param nthreads Number of threads.
  * @param load     Kernel load.
  */
-static void benchmark_cpu(const unsigned *tasks, unsigned ntasks, int nthreads, long load)
+static void benchmark_cpu(const unsigned *tasks, unsigned ntasks, int nthreads, long load, unsigned mogslib)
 {
 	long sum;
-	unsigned *_tasks;
 	double loads[nthreads];
 	double times[nthreads];
-
-	_tasks = smalloc(ntasks*sizeof(unsigned));
 
 	memset(times, 0, nthreads*sizeof(double));
 	memset(loads, 0, nthreads*sizeof(unsigned));
 	
 	/* Workload prediction. */
-	memcpy(_tasks, tasks, ntasks*sizeof(unsigned));
-	omp_set_workload(_tasks, ntasks);
+	if(mogslib)
+		std::get<0>(MOGSLib::API::contexts).set_loads(workloads);
+	else
+		omp_set_workload(loopid, workloads.data(), ntasks, true);
 
 	#pragma omp parallel num_threads(nthreads)
 	{
@@ -180,11 +183,9 @@ static void benchmark_cpu(const unsigned *tasks, unsigned ntasks, int nthreads, 
 		times[tid] = private_time;
 	}
 	
+	printf("Using mogslib: %d\n", mogslib);
 	benchmark_dump(loads, nthreads, "cpu_load");
 	benchmark_dump(times, nthreads, "cpu_time");
-
-	/* House keeping. */
-	free(_tasks);
 }
 
 #if defined(_CACHE_BENCHMARK_)
@@ -199,7 +200,7 @@ static void benchmark_cpu(const unsigned *tasks, unsigned ntasks, int nthreads, 
  * @param nthreads Number of threads.
  * @param load     Kernel load.
  */
-static void benchmark_cache(const unsigned *tasks, unsigned ntasks, int nthreads, long load)
+static void benchmark_cache(const unsigned *tasks, unsigned ntasks, int nthreads, long load, unsigned mogslib)
 {
 	unsigned *_tasks, *array;
 	double loads[nthreads];
@@ -216,8 +217,10 @@ static void benchmark_cache(const unsigned *tasks, unsigned ntasks, int nthreads
 		array[i] = tasks[i];
 	
 	/* Workload prediction. */
-	memcpy(_tasks, tasks, ntasks*sizeof(unsigned));
-	omp_set_workload(_tasks, ntasks);
+	if(mogslib)
+		std::get<0>(MOGSLib::API::contexts).set_loads(workloads);
+	else
+		omp_set_workload(loopid, workloads.data(), ntasks, true);
 
 	#pragma omp parallel num_threads(nthreads)
 	{
@@ -264,7 +267,7 @@ static void benchmark_cache(const unsigned *tasks, unsigned ntasks, int nthreads
  * @param nthreads Number of threads.
  * @param load     Load for constant kernel.
  */
-void benchmark(const unsigned *tasks, unsigned ntasks, int nthreads, long load)
+void benchmark(const unsigned *tasks, unsigned ntasks, int nthreads, long load, unsigned mogslib)
 {
 	/* Sanity check. */
 	assert(tasks != NULL);
@@ -272,9 +275,9 @@ void benchmark(const unsigned *tasks, unsigned ntasks, int nthreads, long load)
 	assert(nthreads > 0);
 	assert(load > 0);
 
-	benchmark_cpu(tasks, ntasks, nthreads, load);
+	benchmark_cpu(tasks, ntasks, nthreads, load, mogslib);
 
 #if defined(_CACHE_BENCHMARK_)
-	benchmark_cache(tasks, ntasks, nthreads, load);
+	benchmark_cache(tasks, ntasks, nthreads, load, mogslib);
 #endif
 }
