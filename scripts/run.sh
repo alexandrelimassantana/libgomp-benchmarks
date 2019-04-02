@@ -19,7 +19,8 @@
 
 INPUT=$1
 NTHREADS=$2
-LOAD=$3
+KERNEL=$3
+LOAD=$4
 
 if [ -z $INPUT ]; then
 	echo "missing input workload"
@@ -52,7 +53,7 @@ do
 	bin/benchmark.elf        \
 		--input $INPUT       \
 		--nthreads $NTHREADS \
-		--kernel logarithmic \
+		--kernel $KERNEL \
 		--load $LOAD 				\
 		--mogslib $USING_MOGSLIB
 done

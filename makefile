@@ -18,9 +18,6 @@
 #
 
 # Directories.
-export MOGSLIB=/home/alexandre/Documents/git/mogslib
-export LIBGOMP=/home/alexandre/Documents/git/libgomp
-
 export BINDIR = $(CURDIR)/bin
 export INCDIR = $(CURDIR)/include
 export SRCDIR = $(CURDIR)/src
