@@ -289,8 +289,7 @@ int main(int argc, const char **argv)
     	omp_set_schedule(omp_sched_binlpt, 0);
     }
 
-	for(int i = 0; i < NTESTS; ++i)
-		benchmark(tasks, args.ntasks, args.nthreads, args.load, args.mogslib);
+	benchmark(tasks, args.ntasks, args.nthreads, args.load, args.mogslib);
 
 	delete [] tasks;
 	

@@ -40,7 +40,7 @@ export EXEC = benchmark
 # Builds everything.
 all:
 	mkdir -p $(BINDIR)
-	$(CC) $(SRCDIR)/benchmark/*.cpp $(CFLAGS)  -o $(BINDIR)/$(EXEC).elf $(LIBS) -D NTESTS=10
+	$(CC) $(SRCDIR)/benchmark/*.cpp $(CFLAGS)  -o $(BINDIR)/$(EXEC).elf $(LIBS)
 
 # Cleans compilation files.
 clean:
