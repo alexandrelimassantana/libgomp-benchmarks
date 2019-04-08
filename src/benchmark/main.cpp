@@ -280,8 +280,14 @@ int main(int argc, const char **argv)
 
 	workloads.resize(args.ntasks);
 	memcpy(workloads.data(), tasks, args.ntasks*sizeof(unsigned));
-	if(!args.mogslib)
-		loopid = omp_loop_register("mainloop");
+
+	// Its a MOGSLib test or native binlpt test
+    if(args.mogslib == 1){ 
+      omp_set_schedule(omp_sched_mogslib, 0);
+    } else {
+    	loopid = omp_loop_register("mainloop");
+    	omp_set_schedule(omp_sched_binlpt, 0);
+    }
 
 	for(int i = 0; i < NTESTS; ++i)
 		benchmark(tasks, args.ntasks, args.nthreads, args.load, args.mogslib);

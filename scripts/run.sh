@@ -47,7 +47,6 @@ do
 	fi
 
 	export LD_LIBRARY_PATH=$LIBGOMP/src/libgomp/build/.libs/
-	export OMP_SCHEDULE="$strategy"
 	export GOMP_CPU_AFFINITY="0-$NTHREADS"
 
 	bin/benchmark.elf        \
