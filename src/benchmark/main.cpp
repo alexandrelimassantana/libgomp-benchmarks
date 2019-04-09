@@ -49,6 +49,7 @@ static struct
 
 unsigned loopid;
 std::vector<unsigned> workloads;
+unsigned nchunks;
 
 /**
  * @brief Prints program usage and exits.
@@ -70,6 +71,7 @@ static void usage(void)
 	printf("  --load <num>          kernel load\n");
 	printf("  --nthreads <num>      Number of threads\n");
 	printf("  --mogslib <1/0>       Using MOGSLib or not\n");
+	printf("  --nchunks <num>       The amount of chunks\n");
 
 	exit(EXIT_SUCCESS);
 }
@@ -216,6 +218,9 @@ static void readargs(int argc, const char **argv)
 			args.input = argv[++i];
 		else if (!strcmp(argv[i], "--mogslib"))
 			args.mogslib = atoi(argv[++i]);
+		else if (!strcmp(argv[i], "--nchunks"))
+			nchunks = atoi(argv[++i]);
+		
 	}
 
 	chkargs(kernelname);
@@ -283,10 +288,10 @@ int main(int argc, const char **argv)
 
 	// Its a MOGSLib test or native binlpt test
     if(args.mogslib == 1){ 
-      omp_set_schedule(omp_sched_mogslib, 0);
+      omp_set_schedule(omp_sched_mogslib, nchunks);
     } else {
     	loopid = omp_loop_register("mainloop");
-    	omp_set_schedule(omp_sched_binlpt, 0);
+    	omp_set_schedule(omp_sched_binlpt, nchunks);
     }
 
 	benchmark(tasks, args.ntasks, args.nthreads, args.load, args.mogslib);

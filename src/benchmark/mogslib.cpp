@@ -33,8 +33,10 @@ inline unsigned *mogslib_call_strategy_map() {
   try {
     auto schedule = MOGSLib::API::work(strategy);
     
-    if(arr != nullptr)
+    if(arr != nullptr) {
       delete [] arr;
+      arr = nullptr;
+    }
 
     arr = new unsigned[schedule.size()];
     std::copy(schedule.begin(), schedule.end(), arr);

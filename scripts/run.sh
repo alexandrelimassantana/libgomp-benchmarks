@@ -20,7 +20,8 @@
 INPUT=$1
 NTHREADS=$2
 KERNEL=$3
-LOAD=$4
+NCHUNKS=$4
+LOAD=$5
 
 if [ -z $INPUT ]; then
 	echo "missing input workload"
@@ -34,6 +35,10 @@ fi
 
 if [ -z $LOAD ]; then
 	let LOAD=10000000
+fi
+
+if [ -z $NCHUNKS ]; then
+	let LOAD=0
 fi
 
 for strategy in binlpt mogslib;
@@ -55,4 +60,5 @@ do
 		--kernel $KERNEL \
 		--load $LOAD 				\
 		--mogslib $USING_MOGSLIB
+		--nchunks $NCHUNKS
 done
